@@ -1,0 +1,131 @@
+.cortex-hint {
+    color: #999;
+    font-size: 0.8em;
+    margin-top: 0.5em;
+}
+
+.cortex-error {
+    background-color: rgba(255, 0, 0, 0.2);
+    padding: 0.5rem;
+
+    border: thin solid rgba(255, 0, 0, 0.4);
+}
+
+.cortex-ratings {
+
+    & .cortex-rating {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: 0.5em;
+
+        border-image-source: linear-gradient(to left, rgba(128, 0, 128, 0.95), rgba(82, 79, 176, 0.7));
+        border-bottom: 2px solid;
+        border-image-slice: 1;
+
+        & .label {
+            flex: 3fr;
+        }
+
+        & .die {
+            flex: 1fr;
+            text-align: right;
+        }
+    }
+}
+
+.die {
+    vertical-align: middle;
+    margin: 0 2px;
+    /* font-family: $body-font-family; */
+
+    &.medium {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    &.small {
+        width: 1.6rem;
+        height: 1.6rem;
+    }
+
+    &.large {
+        width: 5rem;
+        height: 5rem;
+    }
+}
+
+.die.unrolled {
+    & path {
+    fill: #524FB0;
+    }
+
+    & text {
+        fill: #fefefe;
+    }
+}
+
+.die.effect {
+    & path {
+        fill: #2D5931;
+    }
+
+    & text {
+        fill: #fefefe;
+    }
+}
+
+.die.selected {
+    & path {
+        fill: #fefefe;
+        stroke: #0d4ba0;
+        stroke-width: 2;
+    }
+
+    & text {
+        fill: #0a0a0a;
+    }
+}
+
+.die.ignored {
+    & path {
+        fill: #424C59;
+    }
+
+    & text {
+        fill: #82939F;
+    }
+}
+
+.die.hitch {
+    & path {
+        fill: #0a0a0a;
+        stroke: #0d4ba0;
+        stroke-width: 2;
+    }
+
+    & text {
+        fill: #fefefe;
+    }
+}
+
+.die.plot-point {
+    & path {
+        fill: #141c27;
+    }
+
+    & path:first-child {
+        fill: #d2952a;
+    }
+
+    color: #141c27;
+}
+
+.dice-divider {
+    font-size: 2.5em;
+    line-height: 1;
+    vertical-align: middle;
+    margin: 0 0.5em;
+}
+

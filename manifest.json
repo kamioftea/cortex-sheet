@@ -1,0 +1,10 @@
+{
+	"id": "cortex-die-trying-sheet",
+	"name": "Cortex Die Trying Sheets",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Renders Die Trying character sheets",
+	"author": "Jeff Horton <contact@jeff-horton.uk>",
+	"authorUrl": "https://jeff-horton.uk",
+	"isDesktopOnly": false
+}

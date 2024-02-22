@@ -1,0 +1,27 @@
+{
+  "name": "cortex-sheet-obsidian-plugin",
+  "version": "1.0.0",
+  "description": "This is a plugin for Obsidian that allows you to render Cortex character sheets.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "@typescript-eslint/eslint-plugin": "6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "builtin-modules": "3.3.0",
+    "esbuild": "0.20.0",
+    "obsidian": "latest",
+    "tslib": "2.6.2",
+    "typescript": "5.3.3"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  }
+}
