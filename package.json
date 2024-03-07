@@ -1,6 +1,6 @@
 {
   "name": "cortex-sheet-obsidian-plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This is a plugin for Obsidian that allows you to render Cortex character sheets.",
   "main": "main.js",
   "scripts": {
