@@ -8,6 +8,7 @@ export const Mode = {
 }
 
 export const Dice = {
+    Unrated: null,
     D4: 4,
     D6: 6,
     D8: 8,
@@ -31,18 +32,24 @@ export interface DieProps {
 
 // noinspection JSIncompatibleTypesComparison
 export function insertDie(
-    element: HTMLElement, {
+    element: HTMLElement,
+    {
         displaySize = DisplaySize.MEDIUM,
         sides = Dice.D4,
         mode = sides === Dice.PP ? Mode.PP : Mode.UNROLLED,
         value = sides,
     }: DieProps
 ) {
+    if(sides === null) {
+        element.createEl("span", {text: '-', cls: "no-rating"});
+        return;
+    }
+
     const data = getDieData(sides);
 
     if (!data) {
         console.error(sides, ' Not a valid die');
-        return null;
+        return;
     }
 
     const label = getLabel(mode, sides, value);

@@ -31,6 +31,46 @@
         & .die {
             flex: 1fr;
             text-align: right;
+
+            .no-rating {
+                padding: 0.5rem 1.25rem;
+                font-size: 2rem;
+            }
+        }
+    }
+}
+
+.block-language-cortex {
+    & .layout-one-third-two-thirds {
+        display: grid;
+        grid-template:
+            'header header'
+            'left right' /
+            1fr 2fr
+        ;
+
+        @container (width < 40rem) {
+            grid-template:
+            'header'
+            'left'
+            'right'
+        }
+
+        grid-gap: 1rem;
+
+        .header {
+            grid-area: header;
+            width: 100%;
+        }
+
+        .left {
+            grid-area: left;
+            width: 100%;
+        }
+
+        .right {
+            grid-area: right;
+            width: 100%;
         }
     }
 }

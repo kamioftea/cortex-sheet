@@ -1,55 +1,55 @@
-import {Plugin} from "obsidian";
+import {MarkdownPostProcessorContext, Plugin, Vault} from "obsidian";
 import {Schema, z, ZodType, ZodTypeDef} from "zod";
-import {DisplaySize, insertDie} from "./dice";
+import {render} from "./layout/layout";
 
-function renderTrait(trait: TraitSpec, el: HTMLElement) {
-    el.createEl("h3", {text: trait.title});
-
-    if (trait.sfx) {
-        Object.entries(trait.sfx).forEach(([label, description]) => {
-            el.appendChild(paragraphWithSymbols(label, description));
-        });
+function rewriteSrc(block: StatBlock, el: HTMLElement, ctx: MarkdownPostProcessorContext, vault: Vault) {
+    const file = vault.getFiles().find(f => {
+        console.log({f, path: ctx.sourcePath})
+        return f.path === ctx.sourcePath
+    })
+    if (!file) {
+        console.error('no file at', ctx.sourcePath);
+        return
     }
-    const ratingsEl = el.createEl("div", {cls: "cortex-ratings"});
+    const section = ctx.getSectionInfo(el);
+    if (!section) {
+        console.error('no section found');
+        return;
+    }
 
-    Object.entries(trait.ratings).forEach(([label, spec]) => {
-        const containerEl = ratingsEl.createEl("div", {cls: "cortex-rating"});
-        containerEl.createEl("div", {text: label, cls: "label"});
-        const dd = containerEl.createEl("div", {cls: "die"});
-        insertDie(dd, {sides: spec.dieRating});
-    });
-}
+    vault.process(
+        file,
+        (data) => {
+            const lines = data.split("\n")
+            if (lines[section.lineStart] !== '```cortex' || lines[section.lineEnd] !== '```') {
+                console.error('Invalid section found', {section, lines});
+                return data
+            }
 
-function paragraphWithSymbols(label: string, text: string): HTMLElement {
-    const paragraphEl = document.createElement("p");
-    paragraphEl.createEl("strong", {text: label + ": "});
-
-    text.split(/(\[(?:d4|d6|d8|d10|d12|pp)])/i).forEach((part) => {
-        const spanEl = paragraphEl.createEl("span");
-
-        switch (part.toLowerCase()) {
-            case "[d4]": insertDie(spanEl, {sides: 4, displaySize: DisplaySize.SMALL}); break;
-            case "[d6]": insertDie(spanEl, {sides: 6, displaySize: DisplaySize.SMALL}); break;
-            case "[d8]": insertDie(spanEl, {sides: 8, displaySize: DisplaySize.SMALL}); break;
-            case "[d10]": insertDie(spanEl, {sides: 10, displaySize: DisplaySize.SMALL}); break;
-            case "[d12]": insertDie(spanEl, {sides: 12, displaySize: DisplaySize.SMALL}); break;
-            case "[pp]": insertDie(spanEl, {sides: "PP", displaySize: DisplaySize.SMALL}); break;
-            default: spanEl.textContent = part;
+            return [
+                ...lines.slice(0, section.lineStart + 1),
+                JSON.stringify(block, null, 2),
+                ...lines.slice(section.lineEnd)
+            ].join("\n")
         }
-    });
-
-    return paragraphEl;
+    ).then(console.log, console.error)
 }
 
 // noinspection JSUnusedGlobalSymbols -- used by Obsidian
 export default class CortexSheetPlugin extends Plugin {
     async onload() {
-        this.registerMarkdownCodeBlockProcessor("cortex", (source, el) => {
+        const {vault} = this.app;
 
+        this.registerMarkdownCodeBlockProcessor("cortex", (source, el, ctx) => {
             try {
-                const block = parseStatBlock(JSON.parse(source));
-                el.createEl("h2", {text: block.name});
-                block.traits.forEach((trait) => renderTrait(trait, el));
+                let parsedInput = JSON.parse(source);
+                if (typeof parsedInput.template === 'string') {
+                    if (parsedInput.template === 'underworld') {
+                        return this.writeUnderworld(el, ctx, vault);
+                    }
+                }
+                const block = parseStatBlock(parsedInput);
+                render(block, el);
             }
             catch (err) {
                 let errMsg = "Error parsing cortex stat block";
@@ -64,26 +64,114 @@ export default class CortexSheetPlugin extends Plugin {
             }
         });
     }
+
+    private writeUnderworld(el: HTMLElement, ctx: MarkdownPostProcessorContext, vault: Vault) {
+        const template: StatBlock = {
+            name: "Character Name",
+            layout: "one-third-two-third",
+            traits: [
+                {
+                    title: "Attributes",
+                    layoutRegion: 'left',
+                    ratings: {
+                        "Might": 4,
+                        "Wit": 4,
+                        "Presence": 4,
+                        "Reason": 4,
+                        "Courage": 4,
+                        "Grace": 4,
+                    }
+                },
+                {
+                    title: "Roles",
+                    layoutRegion: 'left',
+                    ratings: {
+                        "Bruiser": 4,
+                        "Face": 4,
+                        "Driver": 4,
+                        "Marksman": 4,
+                        "Mastermind": 4,
+                        "Hacker": 4,
+                    }
+                },
+                {
+                    title: "Stress",
+                    layoutRegion: 'left',
+                    ratings: {
+                        "Afraid": null,
+                        "Angry": null,
+                        "Exhausted": null,
+                        "Injured": null,
+                        "Heat": null,
+                        "Insecure": null,
+                    }
+                },
+                {
+                    title: "Distinctions",
+                    sfx: {
+                        "Hinder": "Step a distinction down to a [d4] for a roll to gain a [PP]"
+                    },
+                    ratings: {
+                        "Why did you turn to the revolution?": 8,
+                        "How did you fall through the cracks in society?": 8,
+                        "Do you have a life contract with a Corp?": 8,
+                    }
+                },
+                {
+                    title: "Bonds",
+                    ratings: {
+                        "Character 1": 4,
+                        "Character 2": 4,
+                        "Character 3": 4,
+                        "Character 4": 4,
+                        "Character 5": 4,
+                    }
+                },
+                {
+                    title: "Specialties",
+                    ratings: {
+                        "Speciality 1": 6,
+                        "Speciality 2": 6,
+                    }
+                },
+                {
+                    title: "Talents",
+                    sfx: {
+                        "Talent 1": "Rules description",
+                        "Talent 2": "You can use [d4] - [D12], and [PP]",
+                    },
+                    ratings: {}
+                }
+            ]
+        }
+
+        rewriteSrc(template, el, ctx, vault);
+    }
 }
 
 interface RatingSpec {
-    dieRating: 4 | 6 | 8 | 10 | 12;
+    dieRating: null | 4 | 6 | 8 | 10 | 12;
     description?: string;
 }
 
-interface TraitSpec {
+type Rating = RatingSpec['dieRating'] | RatingSpec
+
+export interface TraitSpec {
     title: string;
+    layoutRegion?: string;
     sfx?: Record<string, string>
-    ratings: Record<string, RatingSpec>;
+    ratings: Record<string, Rating>;
 }
 
-interface StatBlock {
+export interface StatBlock {
     name: string;
+    layout?: string;
     traits: TraitSpec[];
 }
 
 const dieRatingSchema: Schema<RatingSpec["dieRating"]> = z.union(
     [
+        z.null(),
         z.literal(4),
         z.literal(6),
         z.literal(8),
@@ -92,21 +180,24 @@ const dieRatingSchema: Schema<RatingSpec["dieRating"]> = z.union(
     ]
 );
 
-const ratingSchema: Schema<RatingSpec> = z.object(
-    {
-        dieRating: dieRatingSchema,
-        description: z.string().optional()
-    }
-)
+const ratingSchema: Schema<Rating> = z.union(
+    [
+        dieRatingSchema,
+        z.object(
+            {
+                dieRating: dieRatingSchema,
+                description: z.string().optional()
+            }
+        )
+    ]
+);
 
-const looseRatingSchema: ZodType<RatingSpec, ZodTypeDef, unknown> = z.preprocess(
+const looseRatingSchema: ZodType<Rating, ZodTypeDef, unknown> = z.preprocess(
     val => {
         if (typeof val === "string") {
             val = parseInt(val.replace(/^d/i, ""));
         }
-        if (typeof val === "number") {
-            return {dieRating: val};
-        }
+
         return val;
     },
     ratingSchema
@@ -116,10 +207,12 @@ function parseStatBlock(input: unknown): StatBlock {
     const schema: ZodType<StatBlock, ZodTypeDef, unknown> = z.object(
         {
             name: z.string(),
+            layout: z.string().optional(),
             traits: z.array(
                 z.object(
                     {
                         title: z.string(),
+                        layoutRegion: z.string().optional(),
                         sfx: z.record(z.string()).optional(),
                         ratings: z.record(
                             z.string(),
